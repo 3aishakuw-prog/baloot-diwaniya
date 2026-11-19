@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#22150e">
+<title>حذف الحساب — بلوت الديوانية</title>
+<style>
+  :root { color-scheme: dark; --bg: #22150e; --panel: #3a2216; --wool: #efe4cc; --dim: #c9b994; --saffron: #f2c262; --red: #b5302b; --font: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif; }
+  html, body { margin: 0; background: var(--bg); color: var(--wool); font-family: var(--font); }
+  main { max-width: 32em; margin: 0 auto; padding: calc(24px + env(safe-area-inset-top)) 20px 48px; line-height: 1.8; font-size: 17px; }
+  h1 { font-size: 26px; margin: 0 0 6px; text-wrap: balance; }
+  h2 { font-size: 19px; color: var(--saffron); margin: 24px 0 4px; }
+  form { display: flex; flex-direction: column; gap: 12px; background: var(--panel); padding: 18px; border-radius: 16px; margin-top: 10px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: var(--dim); }
+  input { padding: 12px 14px; border-radius: 12px; border: 1.5px solid rgba(239, 228, 204, .25); background: rgba(0, 0, 0, .3); color: var(--wool); font: inherit; }
+  input:focus-visible, button:focus-visible { outline: 3px solid var(--saffron); outline-offset: 2px; }
+  button { padding: 14px; border: 0; border-radius: 12px; background: var(--red); color: #fff; font: 700 17px var(--font); cursor: pointer; }
+  button[disabled] { opacity: .6; }
+  #msg { min-height: 1.4em; font-weight: 600; }
+  #msg.ok { color: #8fe0b4; }
+  #msg.bad { color: #ff9f95; }
+  a { color: var(--saffron); }
+  .band { height: 14px; background: repeating-linear-gradient(90deg, #1d1612 0 12px, #c8302f 12px 24px, #efe4cc 24px 28px); }
+</style>
+</head>
+<body>
+<div class="band"></div>
+<main>
+  <h1>حذف حسابك في «بلوت الديوانية»</h1>
+  <p>لما تحذف الحساب ينحذف نهائياً وفوراً مع كل بياناته: اسم المستخدم واللقب والصورة والإحصائيات ومكانك في الترتيب. ما نحتفظ بأي نسخة.</p>
+
+  <h2>إذا عندك اسم مستخدم وكلمة مرور</h2>
+  <form id="f" autocomplete="on">
+    <label for="u">اسم المستخدم<input id="u" name="username" autocomplete="username" dir="ltr" required></label>
+    <label for="p">كلمة المرور<input id="p" name="password" type="password" autocomplete="current-password" required></label>
+    <button id="b" type="submit">احذف حسابي نهائياً</button>
+    <div id="msg" role="status"></div>
+  </form>
+
+  <h2>إذا تلعب كضيف</h2>
+  <p>افتح اللعبة ← الإعدادات ← <b>حذف حسابي</b>. أو احذف التطبيق من جوالك، وحساب الضيف ما يقدر أحد يدخله بعدها.</p>
+
+  <h2>تحتاج مساعدة؟</h2>
+  <p>تواصل مع المطوّر على البريد الموجود في صفحة اللعبة على Google Play، ونحذف الحساب لك.</p>
+  <p><a href="/privacy.html">سياسة الخصوصية</a> · <a href="/">رجوع للعبة</a></p>
+</main>
+<script>
+  document.getElementById('f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('b');
+    msg.className = '';
+    msg.textContent = '';
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/account/delete-web', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: document.getElementById('u').value.trim(), password: document.getElementById('p').value }) });
+      if (r.ok) {
+        msg.className = 'ok';
+        msg.textContent = 'انحذف الحساب وكل بياناته.';
+        e.target.reset();
+      } else {
+        msg.className = 'bad';
+        msg.textContent = r.status === 401 ? 'اسم المستخدم أو كلمة المرور غلط.' : r.status === 429 ? 'محاولات كثيرة، جرب بعد شوي.' : 'صار خطأ، جرب مرة ثانية.';
+      }
+    } catch (err) {
+      msg.className = 'bad';
+      msg.textContent = 'ما فيه اتصال، جرب مرة ثانية.';
+    }
+    btn.disabled = false;
+  });
+</script>
+</body>
+</html>
