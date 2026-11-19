@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.diwaniya.baloot",
+      "sha256_cert_fingerprints": [
+        "08:76:79:33:65:6D:75:8C:9B:E7:C3:1B:E0:C5:07:82:28:DE:A0:1D:BC:95:12:A7:9F:FB:F8:44:94:C8:56:32",
+        "8F:52:6F:71:C9:69:A0:0B:34:29:89:89:6B:BF:9C:91:02:3C:CD:97:C1:92:96:90:65:76:DF:FA:E1:EB:83:87"
+      ]
+    }
+  }
+]
