@@ -1,0 +1,21 @@
+,-----.        ,--.  ,--.  ,--.
+|  |) /_,--.,--|  |-.|  |-.|  |,---.,--.   ,--,--.--.,--,--.,---.
+|  .-.  |  ||  | .-. | .-. |  | .-. |  |.'.|  |  .--' ,-.  | .-. |
+|  '--' '  ''  | `-' | `-' |  \   --|   .'.   |  |  \ '-'  | '-' '
+`------' `----' `---' `---'`--'`----'--'   '--`--'   `--`--|  |-'
+                                                           `--'    
+Generating Android Project.
+
+Project updated successfully.
+Build it by running bubblewrap build
+,-----.        ,--.  ,--.  ,--.
+|  |) /_,--.,--|  |-.|  |-.|  |,---.,--.   ,--,--.--.,--,--.,---.
+|  .-.  |  ||  | .-. | .-. |  | .-. |  |.'.|  |  .--' ,-.  | .-. |
+|  '--' '  ''  | `-' | `-' |  \   --|   .'.   |  |  \ '-'  | '-' '
+`------' `----' `---' `---'`--'`----'--'   '--`--'   `--`--|  |-'
+                                                           `--'    
+Using passwords set in the BUBBLEWRAP_KEYSTORE_PASSWORD and BUBBLEWRAP_KEY_PASSWORD environmental variables.
+
+Building the Android App...
+	- Generated Android APK at ./app-release-signed.apk
+	- Generated Android App Bundle at ./app-release-bundle.aab
