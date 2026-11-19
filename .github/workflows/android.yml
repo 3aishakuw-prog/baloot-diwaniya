@@ -1,0 +1,63 @@
+# Builds the Google Play app (Trusted Web Activity) with Bubblewrap and signs it with a new upload key.
+# The upload key is encrypted with android/release-pub.pem before it is stored, so only its owner can open it.
+name: android
+on:
+  push:
+    branches: [main]
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+      - name: Configure toolchain
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Build signed bundle
+        working-directory: android
+        run: |
+          set -eo pipefail
+          PW=$(openssl rand -hex 16)
+          keytool -genkeypair -keystore android.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$PW" -keypass "$PW" -dname "CN=Baloot Diwaniya, OU=Games, O=Diwaniya, C=KW" > /dev/null
+          bubblewrap update --manifest=./twa-manifest.json --skipVersionUpgrade 2>&1 | tee ../build-log.txt
+          BUBBLEWRAP_KEYSTORE_PASSWORD="$PW" BUBBLEWRAP_KEY_PASSWORD="$PW" \
+            bubblewrap build --manifest=./twa-manifest.json --skipPwaValidation 2>&1 | tee -a ../build-log.txt
+          mkdir -p ../out
+          cp app-release-bundle.aab ../out/baloot-diwaniya.aab
+          cp app-release-signed.apk ../out/baloot-diwaniya.apk || true
+          keytool -list -v -keystore android.keystore -alias upload -storepass "$PW" | grep -E "SHA256:" > ../out/upload-sha256.txt
+          printf '%s' "$PW" > pw.txt
+          tar cf secrets.tar android.keystore pw.txt
+          KEY=$(openssl rand -hex 32)
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in secrets.tar -out ../out/upload-key.tar.enc -pass "pass:$KEY"
+          printf '%s' "$KEY" | openssl pkeyutl -encrypt -pubin -inkey release-pub.pem -pkeyopt rsa_padding_mode:oaep -out ../out/upload-key.pass.enc
+          rm -f pw.txt secrets.tar
+      - name: Publish build output
+        if: always()
+        run: |
+          mkdir -p out
+          cp build-log.txt out/ 2>/dev/null || true
+          echo "${{ job.status }} $(date -u)" > out/status.txt
+          cd out
+          git init -q
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Android build ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:android-build
